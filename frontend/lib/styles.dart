@@ -21,11 +21,9 @@ const kButtonTextStyle = TextStyle(
 // Button Style
 ButtonStyle kElevatedButtonStyle(Color color) {
   return ElevatedButton.styleFrom(
-    padding: EdgeInsets.symmetric(vertical: 18),
+    padding: const EdgeInsets.symmetric(vertical: 18),
     backgroundColor: color,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     textStyle: kButtonTextStyle,
   );
 }

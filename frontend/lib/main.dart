@@ -5,35 +5,36 @@ import 'styles.dart';
 
 void main() {
   // Entry point of the Flutter application
-  runApp(MaterialApp(
-    title: 'Deadline Tracker',
-    initialRoute: '/',
-    routes: {
-      '/': (context) => HomeScreen(),
-      '/upload': (context) => deadlineUpload(),
-      '/calendar': (context) => calendar(),
-    },
-  ));
+  runApp(
+    MaterialApp(
+      title: 'Deadline Tracker',
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomeScreen(),
+        '/upload': (context) => deadlineUpload(),
+        '/calendar': (context) => calendar(),
+      },
+    ),
+  );
 }
 
 void uploadCSV() {
-    //this will contain logic to upload csv
+  //this will contain logic to upload csv
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Deadline Tracker',
-      home: HomeScreen(),
-    );
+    return MaterialApp(title: 'Deadline Tracker', home: HomeScreen());
   }
 }
 
-
-
 //home screen class
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,4 +65,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-

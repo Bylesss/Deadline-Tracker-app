@@ -12,7 +12,15 @@ class _calendarState extends State<calendar> {
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedMonth = DateTime.now();
 
-  List<String> get _weekDays => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  List<String> get _weekDays => [
+    'Sun',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+  ];
 
   int _daysInMonth(DateTime date) {
     return DateTime(date.year, date.month + 1, 0).day;
@@ -27,62 +35,82 @@ class _calendarState extends State<calendar> {
     final daysInMonth = _daysInMonth(_focusedMonth);
     final firstWeekday = _firstWeekdayOfMonth(_focusedMonth);
     final monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calendar View'),
-        backgroundColor: kPrimaryColor,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('Calendar')),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(kPagePadding),
         child: Column(
           children: [
-            // Month navigation row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1);
-                    });
-                  },
-                  icon: const Icon(Icons.chevron_left),
-                ),
-                Text(
-                  '${monthNames[_focusedMonth.month - 1]} ${_focusedMonth.year}',
-                  style: kHeadingTextStyle,
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1);
-                    });
-                  },
-                  icon: const Icon(Icons.chevron_right),
-                ),
-              ],
+            // Month navigation
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              decoration: kCardDecoration,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _focusedMonth = DateTime(
+                          _focusedMonth.year,
+                          _focusedMonth.month - 1,
+                        );
+                      });
+                    },
+                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                    splashRadius: 22,
+                  ),
+                  Text(
+                    '${monthNames[_focusedMonth.month - 1]} ${_focusedMonth.year}',
+                    style: kSubheadingTextStyle,
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _focusedMonth = DateTime(
+                          _focusedMonth.year,
+                          _focusedMonth.month + 1,
+                        );
+                      });
+                    },
+                    icon: const Icon(Icons.chevron_right_rounded, size: 28),
+                    splashRadius: 22,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: kItemSpacing),
             // Weekday headers
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: _weekDays
-                  .map((day) => SizedBox(
-                        width: 40,
-                        child: Text(
-                          day,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: kTextColor,
-                          ),
+                  .map(
+                    (day) => SizedBox(
+                      width: 40,
+                      child: Text(
+                        day,
+                        textAlign: TextAlign.center,
+                        style: kCaptionTextStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: kTextSecondary,
                         ),
-                      ))
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 8),
@@ -99,39 +127,41 @@ class _calendarState extends State<calendar> {
                     return const SizedBox.shrink();
                   }
                   final day = index - firstWeekday + 1;
-                  final isSelected = day == _selectedDate.day &&
+                  final isSelected =
+                      day == _selectedDate.day &&
                       _focusedMonth.month == _selectedDate.month &&
                       _focusedMonth.year == _selectedDate.year;
-                  final isToday = day == DateTime.now().day &&
+                  final isToday =
+                      day == DateTime.now().day &&
                       _focusedMonth.month == DateTime.now().month &&
                       _focusedMonth.year == DateTime.now().year;
 
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        _selectedDate = DateTime(_focusedMonth.year, _focusedMonth.month, day);
+                        _selectedDate = DateTime(
+                          _focusedMonth.year,
+                          _focusedMonth.month,
+                          day,
+                        );
                       });
                     },
                     child: Container(
-                      margin: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? kPrimaryColor
-                            : isToday
-                                ? kPrimaryColor.withOpacity(0.15)
-                                : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: isToday && !isSelected
-                            ? Border.all(color: kPrimaryColor, width: 1.5)
-                            : null,
-                      ),
+                      margin: const EdgeInsets.all(3),
+                      decoration: isSelected
+                          ? kSelectedDecoration
+                          : isToday
+                          ? kTodayDecoration
+                          : null,
                       child: Center(
                         child: Text(
                           '$day',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.white : kTextColor,
+                            fontSize: 15,
+                            fontWeight: isToday || isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: isSelected ? Colors.white : kTextPrimary,
                           ),
                         ),
                       ),

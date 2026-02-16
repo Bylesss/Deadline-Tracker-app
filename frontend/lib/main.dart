@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'deadline_upload.dart';
 import 'calendar.dart';
+import 'pomodoro.dart';
 import 'styles.dart';
 
 void main() {
@@ -13,6 +14,7 @@ void main() {
         '/': (context) => HomeScreen(),
         '/upload': (context) => deadlineUpload(),
         '/calendar': (context) => calendar(),
+        '/pomodoro': (context) => pomodoro(),
       },
     ),
   );
@@ -27,7 +29,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Deadline Tracker', home: HomeScreen());
+    return const MaterialApp(title: 'Deadline Tracker', home: HomeScreen());
   }
 }
 
@@ -38,7 +40,11 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Deadline Tracker')),
+      appBar: AppBar(
+        title: const Text('Deadline Tracker'),
+        backgroundColor: kPrimaryColor,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -46,18 +52,26 @@ class HomeScreen extends StatelessWidget {
           children: [
             const Text(
               'Welcome to Deadline Tracker!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: kHeadingTextStyle,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/upload'),
+              style: kElevatedButtonStyle(kPrimaryColor),
               child: const Text('Upload Deadline CSV'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.pushNamed(context, '/calendar'),
+              style: kElevatedButtonStyle(kSecondaryColor),
               child: const Text('View Calendar'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, '/pomodoro'),
+              style: kElevatedButtonStyle(kPrimaryColor),
+              child: const Text('Start Pomodoro Timer'),
             ),
           ],
         ),

@@ -169,6 +169,7 @@ class _calendarState extends State<calendar> {
                       final hasDeadline = dayDeadlines.isNotEmpty;
 
                       return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
                         onTap: () {
                           setState(() {
                             _selectedDate = DateTime(
@@ -178,40 +179,42 @@ class _calendarState extends State<calendar> {
                             );
                           });
                         },
-                        child: Container(
-                          margin: const EdgeInsets.all(3),
-                          decoration: isSelected
-                              ? kSelectedDecoration
-                              : isToday
-                              ? kTodayDecoration
-                              : null,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '$day',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isToday || isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : kTextPrimary,
-                                ),
-                              ),
-                              if (hasDeadline)
-                                Container(
-                                  width: 5,
-                                  height: 5,
-                                  decoration: BoxDecoration(
+                        child: Padding(
+                          padding: const EdgeInsets.all(3),
+                          child: Container(
+                            decoration: isSelected
+                                ? kSelectedDecoration
+                                : isToday
+                                ? kTodayDecoration
+                                : null,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '$day',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: isToday || isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
                                     color: isSelected
                                         ? Colors.white
-                                        : kPrimaryColor,
-                                    shape: BoxShape.circle,
+                                        : kTextPrimary,
                                   ),
                                 ),
-                            ],
+                                if (hasDeadline)
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : kPrimaryColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       );

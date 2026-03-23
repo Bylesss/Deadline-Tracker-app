@@ -4,44 +4,163 @@ import 'calendar.dart';
 import 'pomodoro.dart';
 import 'styles.dart';
 
+enum UserRole { student, staff }
+
 void main() {
-  runApp(
-    MaterialApp(
-      title: 'Deadline Tracker',
-      debugShowCheckedModeBanner: false,
-      theme: kAppTheme,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomeScreen(),
-        '/upload': (context) => const deadlineUpload(),
-        '/calendar': (context) => const calendar(),
-        '/pomodoro': (context) => const pomodoro(),
-      },
-    ),
-  );
+  runApp(const DeadlineTrackerApp());
 }
 
 void uploadCSV() {
   //this will contain logic to upload csv
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class DeadlineTrackerApp extends StatefulWidget {
+  const DeadlineTrackerApp({super.key});
+
+  @override
+  State<DeadlineTrackerApp> createState() => _DeadlineTrackerAppState();
+}
+
+class _DeadlineTrackerAppState extends State<DeadlineTrackerApp> {
+  UserRole? _selectedRole;
+
+  void _setRole(UserRole role) {
+    setState(() {
+      _selectedRole = role;
+    });
+  }
+
+  void _changeRole() {
+    setState(() {
+      _selectedRole = null;
+    });
+  }
+
+  Route<dynamic> _onGenerateRoute(RouteSettings settings) {
+    final role = _selectedRole;
+    switch (settings.name) {
+      case '/upload':
+        if (role == null) {
+          return MaterialPageRoute(
+            builder: (_) => RoleSelectionScreen(onRoleSelected: _setRole),
+          );
+        }
+        if (role == UserRole.student) {
+          return MaterialPageRoute(
+            builder: (_) => HomeScreen(
+              userRole: UserRole.student,
+              onChangeRole: _changeRole,
+            ),
+          );
+        }
+        return MaterialPageRoute(builder: (_) => const deadlineUpload());
+      case '/calendar':
+        return MaterialPageRoute(builder: (_) => const calendar());
+      case '/pomodoro':
+        return MaterialPageRoute(builder: (_) => const pomodoro());
+      default:
+        return MaterialPageRoute(
+          builder: (_) => role == null
+              ? RoleSelectionScreen(onRoleSelected: _setRole)
+              : HomeScreen(userRole: role, onChangeRole: _changeRole),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'Deadline Tracker', home: HomeScreen());
+    return MaterialApp(
+      title: 'Deadline Tracker',
+      debugShowCheckedModeBanner: false,
+      theme: kAppTheme,
+      onGenerateRoute: _onGenerateRoute,
+      initialRoute: '/',
+    );
   }
 }
 
-//home screen class
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class RoleSelectionScreen extends StatelessWidget {
+  final ValueChanged<UserRole> onRoleSelected;
+
+  const RoleSelectionScreen({super.key, required this.onRoleSelected});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Deadline Tracker')),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(kPagePadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Spacer(),
+              const Text(
+                'Who are you?',
+                style: kHeadingTextStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Choose your role to continue.',
+                style: kBodyTextStyle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: kSectionSpacing),
+              ElevatedButton.icon(
+                onPressed: () {
+                  onRoleSelected(UserRole.student);
+                  Navigator.pushReplacementNamed(context, '/');
+                },
+                icon: const Icon(Icons.school_rounded),
+                label: const Text('I am a Student'),
+              ),
+              const SizedBox(height: kItemSpacing),
+              ElevatedButton.icon(
+                onPressed: () {
+                  onRoleSelected(UserRole.staff);
+                  Navigator.pushReplacementNamed(context, '/');
+                },
+                icon: const Icon(Icons.badge_rounded),
+                label: const Text('I am a Staff Member'),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+//home screen class
+class HomeScreen extends StatelessWidget {
+  final UserRole userRole;
+  final VoidCallback onChangeRole;
+
+  const HomeScreen({
+    super.key,
+    required this.userRole,
+    required this.onChangeRole,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isStaff = userRole == UserRole.staff;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Deadline Tracker'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              onChangeRole();
+              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+            },
+            child: const Text('Switch Role'),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(kPagePadding),
@@ -55,15 +174,24 @@ class HomeScreen extends StatelessWidget {
                 'What would you like to do today?',
                 style: kBodyTextStyle,
               ),
-              const SizedBox(height: kSectionSpacing),
-              _NavCard(
-                icon: Icons.upload_file_rounded,
-                title: 'Upload Deadlines',
-                subtitle: 'Import your deadline CSV file',
-                color: kPrimaryColor,
-                onTap: () => Navigator.pushNamed(context, '/upload'),
+              const SizedBox(height: 6),
+              Text(
+                isStaff
+                    ? 'You are signed in as staff.'
+                    : 'You are signed in as student.',
+                style: kCaptionTextStyle,
               ),
-              const SizedBox(height: kItemSpacing),
+              const SizedBox(height: kSectionSpacing),
+              if (isStaff) ...[
+                _NavCard(
+                  icon: Icons.upload_file_rounded,
+                  title: 'Upload Deadlines',
+                  subtitle: 'Import your deadline CSV file',
+                  color: kPrimaryColor,
+                  onTap: () => Navigator.pushNamed(context, '/upload'),
+                ),
+                const SizedBox(height: kItemSpacing),
+              ],
               _NavCard(
                 icon: Icons.calendar_month_rounded,
                 title: 'Calendar',

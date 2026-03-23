@@ -1,16 +1,135 @@
-# frontend
+# Deadline Tracker App (Flutter + FastAPI)
 
-A new Flutter project.
+Deadline Tracker is a student productivity app that helps you:
 
-## Getting Started
+- import deadlines from a CSV file,
+- view them on a calendar,
+- and stay focused with a built-in Pomodoro timer.
 
-This project is a starting point for a Flutter application.
+This repository contains:
 
-A few resources to get you started if this is your first Flutter project:
+- a Flutter frontend in the frontend folder,
+- a FastAPI backend in the backend folder.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Home dashboard with navigation cards
+- CSV deadline import (title + date)
+- Shared in-memory deadline store
+- Interactive calendar with deadline markers
+- Pomodoro timer with Work / Short Break / Long Break modes
+- FastAPI backend endpoint for CSV upload testing
+
+## Tech Stack
+
+- Frontend: Flutter (Dart)
+- Backend: FastAPI (Python)
+- File input: file_picker package
+
+## Project Structure
+
+deadline-tracker-app/
+- backend/
+	- app.py
+- frontend/
+	- lib/
+		- main.dart
+		- deadline_upload.dart
+		- deadline_store.dart
+		- calendar.dart
+		- pomodoro.dart
+		- styles.dart
+	- pubspec.yaml
+
+## Prerequisites
+
+Install before running:
+
+- Flutter SDK (3.10+)
+- Dart SDK (comes with Flutter)
+- Python 3.10+
+
+Optional but recommended:
+
+VS Code with Flutter extension
+
+## Run the Frontend
+
+From the frontend folder:
+
+1. Install packages:
+
+	 flutter pub get
+
+2. Run the app:
+
+	 flutter run
+
+If no device is attached, you can run on web:
+
+flutter run -d chrome
+
+## Run the Backend
+
+From the backend folder:
+
+1. Create and activate a virtual environment.
+2. Install dependencies:
+
+	 pip install fastapi uvicorn python-multipart
+
+3. Start the API:
+
+	 uvicorn app:app --reload
+
+The backend will be available at:
+
+- API root: http://127.0.0.1:8000/
+- Swagger docs: http://127.0.0.1:8000/docs
+
+## API Endpoints
+
+- GET /
+	- Returns a basic status message.
+
+- POST /upload-csv
+	- Accepts a file upload and returns filename + file size.
+
+## CSV Format
+
+The current parser expects:
+
+- a header row,
+- column 1 = title,
+- column 2 = date in ISO format (for example, 2026-03-23).
+
+Example:
+
+title,date
+Math Assignment,2026-03-25
+Chemistry Lab,2026-03-28
+
+## Current Limitations
+
+- Deadlines are stored in memory only (not persisted).
+- CSV parsing is basic and comma-split based.
+- No authentication/authorization.
+- Backend upload endpoint currently validates upload presence only.
+
+## Suggested Next Improvements
+
+- Add persistent storage (SQLite or PostgreSQL)
+- Improve CSV parsing robustness and validation
+- Connect frontend upload flow to backend endpoint
+- Add notifications/reminders for upcoming deadlines
+- Add tests for parser, store, and key widgets
+
+## Troubleshooting
+
+- If flutter pub get fails, run flutter doctor and fix reported issues.
+- If file picking fails on some platforms, confirm platform permissions.
+- If backend cannot start, verify dependencies and Python version.
+
+## License
+
+No license specified yet.

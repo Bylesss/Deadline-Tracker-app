@@ -3,15 +3,12 @@ import 'deadline_upload.dart';
 import 'calendar.dart';
 import 'pomodoro.dart';
 import 'styles.dart';
+import 'deadline_store.dart';
 
 enum UserRole { student, staff }
 
 void main() {
   runApp(const DeadlineTrackerApp());
-}
-
-void uploadCSV() {
-  //this will contain logic to upload csv
 }
 
 class DeadlineTrackerApp extends StatefulWidget {
@@ -23,6 +20,17 @@ class DeadlineTrackerApp extends StatefulWidget {
 
 class _DeadlineTrackerAppState extends State<DeadlineTrackerApp> {
   UserRole? _selectedRole;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load deadlines from backend on app start
+    _loadDeadlines();
+  }
+
+  Future<void> _loadDeadlines() async {
+    await DeadlineStore().loadDeadlines();
+  }
 
   void _setRole(UserRole role) {
     setState(() {
@@ -147,6 +155,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isStaff = userRole == UserRole.staff;
+    final store = DeadlineStore();
 
     return Scaffold(
       appBar: AppBar(
@@ -180,6 +189,36 @@ class HomeScreen extends StatelessWidget {
                     ? 'You are signed in as staff.'
                     : 'You are signed in as student.',
                 style: kCaptionTextStyle,
+              ),
+              const SizedBox(height: 8),
+              // Connection status indicator
+              ValueListenableBuilder<String?>(
+                valueListenable: store.error,
+                builder: (context, error, child) {
+                  if (error != null) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Backend connection failed. Check if server is running.',
+                              style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
               const SizedBox(height: kSectionSpacing),
               if (isStaff) ...[

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:convert';
+import 'dart:io';
 import 'styles.dart';
 import 'deadline_store.dart';
+import 'api_service.dart';
 
 class deadlineUpload extends StatefulWidget {
   const deadlineUpload({super.key});
@@ -14,57 +15,69 @@ class deadlineUpload extends StatefulWidget {
 class _deadlineUploadState extends State<deadlineUpload> {
   List<Deadline> _deadlines = [];
   String? _error;
+  bool _isUploading = false;
 
-  Future<void> _pickAndParseCSV() async {
+  Future<void> _pickAndUploadCSV() async {
     setState(() {
       _error = null;
+      _isUploading = true;
     });
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-    );
-    if (result != null) {
-      String content;
-      if (result.files.single.bytes != null) {
-        content = utf8.decode(result.files.single.bytes!);
-      } else if (result.files.single.path != null) {
-        // Fallback for desktop/mobile
-        // import 'dart:io'; required for this
-        // final file = File(result.files.single.path!);
-        // content = await file.readAsString();
-        setState(() {
-          _error = 'File reading not supported on web.';
-        });
-        return;
-      } else {
-        setState(() {
-          _error = 'No file content found.';
-        });
-        return;
-      }
-      try {
-        final lines = LineSplitter.split(content).toList();
-        final List<Deadline> parsed = [];
-        for (var i = 1; i < lines.length; i++) {
-          // skip header
-          final row = lines[i].split(',');
-          if (row.length >= 2) {
-            final title = row[0].trim();
-            final date = DateTime.tryParse(row[1].trim());
-            if (date != null) {
-              parsed.add(Deadline(title: title, date: date));
-            }
-          }
-        }
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        
+        // Upload to backend
+        final response = await ApiService.uploadCsv(file);
+        
+        // Parse response
+        List<dynamic> deadlinesList = response['deadlines'];
+        final parsed = deadlinesList.map((json) {
+          return Deadline(
+            title: json['title'],
+            date: DateTime.parse(json['date']),
+          );
+        }).toList();
+
         setState(() {
           _deadlines = parsed;
         });
-        DeadlineStore().deadlines.value = parsed;
-      } catch (e) {
-        setState(() {
-          _error = 'Failed to parse CSV.';
-        });
+
+        // Update global store
+        await DeadlineStore().loadDeadlines();
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message']),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
+    } catch (e) {
+      setState(() {
+        _error = 'Upload failed: ${e.toString()}';
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_error!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
     }
   }
 
@@ -107,9 +120,15 @@ class _deadlineUploadState extends State<deadlineUpload> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _pickAndParseCSV,
-                  icon: const Icon(Icons.file_open_rounded),
-                  label: const Text('Choose CSV File'),
+                  onPressed: _isUploading ? null : _pickAndUploadCSV,
+                  icon: _isUploading 
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.file_open_rounded),
+                  label: Text(_isUploading ? 'Uploading...' : 'Choose CSV File'),
                 ),
               ),
               if (_error != null) ...[
@@ -118,7 +137,7 @@ class _deadlineUploadState extends State<deadlineUpload> {
               ],
               if (_deadlines.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                const Text('Parsed Deadlines:', style: kSubheadingTextStyle),
+                const Text('Uploaded Deadlines:', style: kSubheadingTextStyle),
                 SizedBox(
                   height: 120,
                   child: ListView.builder(
@@ -126,6 +145,7 @@ class _deadlineUploadState extends State<deadlineUpload> {
                     itemBuilder: (context, i) {
                       final d = _deadlines[i];
                       return ListTile(
+                        leading: const Icon(Icons.check_circle, color: Colors.green),
                         title: Text(d.title),
                         subtitle: Text(d.date.toIso8601String()),
                       );
@@ -137,7 +157,27 @@ class _deadlineUploadState extends State<deadlineUpload> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('CSV Format Guide'),
+                        content: const Text(
+                          'Your CSV file should have the following format:\n\n'
+                          'title,date\n'
+                          'Math Assignment,2024-12-25T23:59:59\n'
+                          'Project Submission,2024-12-31T23:59:59\n\n'
+                          'Date format: ISO8601 (YYYY-MM-DDTHH:MM:SS)'
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Got it'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                   style: kOutlinedButtonStyle(kPrimaryColor),
                   icon: const Icon(Icons.info_outline_rounded),
                   label: const Text('View Format Guide'),

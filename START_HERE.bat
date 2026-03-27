@@ -6,7 +6,7 @@ echo.
 echo The app needs TWO terminals running:
 echo.
 echo TERMINAL 1 (Backend Server):
-echo   cd backend
+echo   cd backendK
 echo   pip install -r requirements.txt
 echo   python -m uvicorn app:app --reload
 echo.

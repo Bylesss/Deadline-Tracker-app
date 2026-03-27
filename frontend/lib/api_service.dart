@@ -1,7 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'deadline_store.dart';
+
+// Only import dart:io on non-web platforms
+import 'dart:io' if (dart.library.js) 'stub_file.dart';
 
 class ApiService {
   // TODO: Update this URL based on where backend runs
@@ -9,18 +12,30 @@ class ApiService {
   // For production: your deployed backend URL
   static const String baseUrl = 'http://localhost:8000';
 
-  // Upload CSV file to backend
-  static Future<Map<String, dynamic>> uploadCsv(File file) async {
+  // Upload CSV file to backend (supports both web and desktop)
+  static Future<Map<String, dynamic>> uploadCsv(dynamic fileData, String fileName) async {
     try {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/upload-csv'),
       );
 
-      // Add the file
-      request.files.add(
-        await http.MultipartFile.fromPath('file', file.path),
-      );
+      // Add the file based on platform
+      if (fileData is List<int>) {
+        // Web platform or bytes: fileData is bytes
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            fileData,
+            filename: fileName,
+          ),
+        );
+      } else {
+        // Desktop/Mobile platform: fileData is File with path
+        request.files.add(
+          await http.MultipartFile.fromPath('file', fileData.path),
+        );
+      }
 
       // Send request
       var streamedResponse = await request.send();

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'styles.dart';
 import 'deadline_store.dart';
 import 'api_service.dart';
+
+// Only import dart:io on non-web platforms
+import 'dart:io' if (dart.library.js) 'stub_file.dart';
 
 class deadlineUpload extends StatefulWidget {
   const deadlineUpload({super.key});
@@ -27,13 +30,33 @@ class _deadlineUploadState extends State<deadlineUpload> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
+        withData: true, // Important for web
       );
 
-      if (result != null && result.files.single.path != null) {
-        final file = File(result.files.single.path!);
+      if (result != null) {
+        dynamic fileData;
+        String fileName = result.files.single.name;
+        
+        // Handle different platforms
+        if (kIsWeb) {
+          // Web platform: use bytes
+          if (result.files.single.bytes != null) {
+            fileData = result.files.single.bytes!;
+          } else {
+            throw Exception('No file data available on web');
+          }
+        } else {
+          // Desktop/Mobile platform: create File from path
+          final filePath = result.files.single.path;
+          if (filePath != null) {
+            fileData = File(filePath);
+          } else {
+            throw Exception('No file path available');
+          }
+        }
         
         // Upload to backend
-        final response = await ApiService.uploadCsv(file);
+        final response = await ApiService.uploadCsv(fileData, fileName);
         
         // Parse response
         List<dynamic> deadlinesList = response['deadlines'];

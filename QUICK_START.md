@@ -2,6 +2,7 @@
 
 ## The Problem
 **"Can't connect to server"** means the backend is not running!
+**"Path unavailable on web"** - FIXED! Now works on web platform.
 
 ## The Solution (3 Steps)
 
@@ -31,10 +32,16 @@ INFO:     Application startup complete.
 ```bash
 cd frontend
 flutter pub get
-flutter run -d windows
+flutter run -d chrome
 ```
 
-(Use `-d macos` or `-d linux` depending on your OS)
+**Note:** Using Chrome web version (works on all platforms!)
+
+**Other options:**
+- `-d edge` (Microsoft Edge browser)
+- `-d windows` (requires Visual Studio with C++ tools)
+- `-d macos` (macOS only)
+- `-d linux` (Linux only)
 
 ---
 
@@ -45,6 +52,8 @@ flutter run -d windows
 3. Click "Upload Deadlines"
 4. Choose `sample_deadlines.csv`
 5. Deadlines will be saved to database!
+
+**✅ The app now works on web - file upload fixed!**
 
 ---
 

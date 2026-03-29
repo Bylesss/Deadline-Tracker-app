@@ -37,14 +37,24 @@ This application now uses a **2-tier architecture**:
    pip install -r requirements.txt
    ```
 
-3. **Start the FastAPI server:**
+3. **(Optional) Configure environment variables:**
+
+   ```bash
+   # Restrict CORS to frontend origins (comma-separated)
+   set ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8000
+
+   # Protect DELETE /deadlines when set
+   set ADMIN_TOKEN=change-this-token
+   ```
+
+4. **Start the FastAPI server:**
    ```bash
    uvicorn app:app --reload
    ```
    
    The backend will run on `http://localhost:8000`
 
-4. **Test the backend:**
+5. **Test the backend:**
    - Open browser: http://localhost:8000 (should show `{"message": "Backend is running"}`)
    - API docs: http://localhost:8000/docs
 
@@ -60,9 +70,10 @@ This application now uses a **2-tier architecture**:
    flutter pub get
    ```
 
-3. **Update API URL (if needed):**
-   - Edit `lib/api_service.dart`
-   - Update `baseUrl` if backend is not on localhost:8000
+3. **Set API URL/token at runtime (if needed):**
+   - `flutter run --dart-define=API_BASE_URL=http://localhost:8000`
+   - If backend `ADMIN_TOKEN` is set:
+     `flutter run --dart-define=API_BASE_URL=http://localhost:8000 --dart-define=ADMIN_TOKEN=change-this-token`
 
 4. **Run the Flutter app:**
    ```bash
@@ -126,6 +137,10 @@ Retrieve all deadlines from database.
 
 ### `DELETE /deadlines`
 Delete all deadlines from database.
+
+If backend `ADMIN_TOKEN` is set, this endpoint requires header:
+
+- `X-Admin-Token: <ADMIN_TOKEN>`
 
 **Response:**
 ```json

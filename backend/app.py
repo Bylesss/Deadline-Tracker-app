@@ -1,4 +1,6 @@
-from fastapi import FastAPI, UploadFile, Depends, HTTPException
+import os
+
+from fastapi import FastAPI, UploadFile, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -10,6 +12,19 @@ from models.schemas import DeadlineResponse, UploadResponse, DeadlinesResponse, 
 
 app = FastAPI(title="Deadline Tracker API")
 
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://localhost:8000",
+    ).split(",")
+    if origin.strip()
+]
+
+# If set, privileged endpoints require this header:
+# X-Admin-Token: <ADMIN_TOKEN>
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
+
 # Initialize database on startup
 @app.on_event("startup")
 def on_startup():
@@ -18,7 +33,7 @@ def on_startup():
 # Allow Flutter frontend to talk to backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict to your frontend URL
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -109,7 +124,13 @@ async def upload_csv(file: UploadFile, db: Session = Depends(get_db)):
 
 # Delete all deadlines
 @app.delete("/deadlines", response_model=DeleteResponse)
-def delete_all_deadlines(db: Session = Depends(get_db)):
+def delete_all_deadlines(
+    db: Session = Depends(get_db),
+    x_admin_token: str | None = Header(default=None),
+):
+    if ADMIN_TOKEN and x_admin_token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
     count = db.query(Deadline).count()
     db.query(Deadline).delete()
     db.commit()

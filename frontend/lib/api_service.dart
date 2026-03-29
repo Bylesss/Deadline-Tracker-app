@@ -1,16 +1,20 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'deadline_store.dart';
 
-// Only import dart:io on non-web platforms
-import 'dart:io' if (dart.library.js) 'stub_file.dart';
-
 class ApiService {
-  // TODO: Update this URL based on where backend runs
-  // For development: localhost with appropriate port
-  // For production: your deployed backend URL
-  static const String baseUrl = 'http://localhost:8000';
+  // Configure at build/run time with:
+  // --dart-define=API_BASE_URL=http://host:8000
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
+
+  // Optional admin token used for privileged operations.
+  static const String adminToken = String.fromEnvironment(
+    'ADMIN_TOKEN',
+    defaultValue: '',
+  );
 
   // Upload CSV file to backend (supports both web and desktop)
   static Future<Map<String, dynamic>> uploadCsv(dynamic fileData, String fileName) async {
@@ -81,8 +85,14 @@ class ApiService {
   // Delete all deadlines
   static Future<Map<String, dynamic>> deleteAllDeadlines() async {
     try {
+      final headers = <String, String>{};
+      if (adminToken.isNotEmpty) {
+        headers['X-Admin-Token'] = adminToken;
+      }
+
       final response = await http.delete(
         Uri.parse('$baseUrl/deadlines'),
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

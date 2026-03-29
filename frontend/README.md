@@ -26,6 +26,23 @@ This repository contains:
 - Backend: FastAPI (Python)
 - File input: file_picker package
 
+## Backend Connection
+
+The frontend calls the backend using `API_BASE_URL` in `lib/api_service.dart`.
+
+Default value:
+
+- `http://localhost:8000`
+
+Override when running Flutter:
+
+- `flutter run --dart-define=API_BASE_URL=http://localhost:8000`
+
+If backend delete protection is enabled with `ADMIN_TOKEN`, pass the same token
+to Flutter:
+
+- `flutter run --dart-define=ADMIN_TOKEN=your-token --dart-define=API_BASE_URL=http://localhost:8000`
+
 ## Project Structure
 
 deadline-tracker-app/
@@ -93,7 +110,14 @@ The backend will be available at:
 	- Returns a basic status message.
 
 - POST /upload-csv
-	- Accepts a file upload and returns filename + file size.
+	- Accepts a CSV file, validates rows, stores deadlines in SQLite, and returns created records.
+
+- GET /deadlines
+	- Returns all deadlines from the SQLite database.
+
+- DELETE /deadlines
+	- Deletes all deadlines from the SQLite database.
+	- If backend `ADMIN_TOKEN` is set, include `X-Admin-Token`.
 
 ## CSV Format
 
@@ -111,10 +135,10 @@ Chemistry Lab,2026-03-28
 
 ## Current Limitations
 
-- Deadlines are stored in memory only (not persisted).
-- CSV parsing is basic and comma-split based.
+- No per-user data partitioning (all users share the same deadline table).
+- No authentication for read/upload endpoints.
 - No authentication/authorization.
-- Backend upload endpoint currently validates upload presence only.
+- No pagination/filtering on deadline list endpoint.
 
 ## Suggested Next Improvements
 

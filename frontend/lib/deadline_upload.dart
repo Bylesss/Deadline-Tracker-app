@@ -67,6 +67,7 @@ class _deadlineUploadState extends State<deadlineUpload> {
           );
         }).toList();
 
+        if (!mounted) return;
         setState(() {
           _deadlines = parsed;
         });
@@ -85,9 +86,11 @@ class _deadlineUploadState extends State<deadlineUpload> {
         }
       }
     } catch (e) {
-      setState(() {
-        _error = 'Upload failed: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'Upload failed: ${e.toString()}';
+        });
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -98,9 +101,11 @@ class _deadlineUploadState extends State<deadlineUpload> {
         );
       }
     } finally {
-      setState(() {
-        _isUploading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 

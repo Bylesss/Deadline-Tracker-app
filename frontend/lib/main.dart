@@ -209,7 +209,7 @@ class HomeScreen extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Backend connection failed. Check if server is running.',
+                              error,
                               style: TextStyle(color: Colors.red.shade700, fontSize: 12),
                             ),
                           ),

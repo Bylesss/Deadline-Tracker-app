@@ -16,7 +16,7 @@ ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
         "ALLOWED_ORIGINS",
-        "http://localhost:3000,http://localhost:5173,http://localhost:8000",
+        "http://localhost:3000,http://localhost:5173,http://localhost:8000,http://localhost:8080",
     ).split(",")
     if origin.strip()
 ]
@@ -34,6 +34,7 @@ def on_startup():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"http://localhost:\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )

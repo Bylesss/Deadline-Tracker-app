@@ -22,4 +22,4 @@ echo Backend will run on http://localhost:8000
 echo Press Ctrl+C to stop the server
 echo.
 
-uvicorn app:app --reload
+uvicorn app:app --reload --host 0.0.0.0

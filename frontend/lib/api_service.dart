@@ -48,11 +48,18 @@ class ApiService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        // Handle error response
-        var errorData = json.decode(response.body);
-        throw Exception(errorData['detail'] ?? 'Upload failed');
+        String detail;
+        try {
+          var errorData = json.decode(response.body);
+          var raw = errorData['detail'];
+          detail = raw is List ? raw.map((e) => e['msg'] ?? e.toString()).join('; ') : raw?.toString() ?? 'Upload failed';
+        } catch (_) {
+          detail = 'HTTP ${response.statusCode}: ${response.body}';
+        }
+        throw Exception(detail);
       }
     } catch (e) {
+      if (e is Exception) rethrow;
       throw Exception('Failed to upload CSV: $e');
     }
   }
